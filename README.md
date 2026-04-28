@@ -20,6 +20,8 @@ vibex hello.vibe -o hello
 > **Disclaimer:** This is a joke about vibe coding.
 > The funny thing is — it works.
 
+![Proof of vibes](website/static/img/proofofvibes.png)
+
 ---
 
 ## How It Works

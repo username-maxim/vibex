@@ -85,3 +85,5 @@ Hello, World!
 ```
 
 It works. You are now a systems programmer.
+
+![Proof of vibes](/img/proofofvibes.png)
