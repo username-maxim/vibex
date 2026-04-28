@@ -15,10 +15,9 @@ vibex hello.vibe -o hello
 # Hello, World!
 ```
 
-> **Disclaimer:** Սա կատակ է վայբ կոդինգի մասին։
-> Ամենաֆան բանը — դա աշխատում է։
+![Proof of vibes](website/static/img/proofofvibes.png)
 
----
+> Ամենաֆան բանը — դա աշխատում է։
 
 ## Ինչպես է աշխատում
 

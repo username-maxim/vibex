@@ -15,10 +15,9 @@ vibex hello.vibe -o hello
 # Hello, World!
 ```
 
-> **免责声明：** 这是一个关于氛围编程（vibe coding）的玩笑。
-> 有趣的是——它真的能运行。
+![Proof of vibes](website/static/img/proofofvibes.png)
 
----
+> 有趣的是——它真的能运行。
 
 ## 工作原理
 

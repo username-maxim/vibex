@@ -15,10 +15,9 @@ vibex hello.vibe -o hello
 # Hello, World!
 ```
 
-> **Дисклеймер:** Это шутка про вайбкодинг.
-> Самое забавное — оно работает.
+![Proof of vibes](website/static/img/proofofvibes.png)
 
----
+> Самое забавное — оно работает.
 
 ## Как это работает
 

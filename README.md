@@ -17,10 +17,9 @@ vibex hello.vibe -o hello
 # Hello, World!
 ```
 
-> **Disclaimer:** This is a joke about vibe coding.
-> The funny thing is — it works.
-
 ![Proof of vibes](website/static/img/proofofvibes.png)
+
+> The funny thing is — it works.
 
 ---
 
