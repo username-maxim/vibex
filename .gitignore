@@ -19,8 +19,6 @@ a.out
 # other binaries you forgot about
 *.out
 
-# lock file for the lock file
-package-lock.json
 
 # IDE
 .idea
