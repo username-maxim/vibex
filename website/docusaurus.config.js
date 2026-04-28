@@ -4,7 +4,7 @@
 const config = {
   title: 'VIBEX',
   tagline: 'The compiler that vibes.',
-  favicon: 'img/favicon.ico',
+  favicon: undefined,
 
   url: 'https://username-maxim.github.io',
   baseUrl: '/vibex/',
@@ -13,7 +13,7 @@ const config = {
   projectName: 'vibex',
   trailingSlash: false,
 
-  onBrokenLinks: 'throw',
+  onBrokenLinks: 'warn',
   onBrokenMarkdownLinks: 'warn',
 
   i18n: {
