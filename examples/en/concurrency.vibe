@@ -1,0 +1,18 @@
+Make this program faster using threads.
+
+I don't know how many threads.
+More is better right?
+Use like 10,000 threads.
+
+They might need to share some data.
+I'm sure it'll be fine.
+What's the worst that could happen.
+
+# Note: last time I added threads
+# the program started printing different
+# things every run. I called this a "feature"
+# and shipped it.
+
+OPTIMIZE: grindset
+trust me bro.
+trust me bro.

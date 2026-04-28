@@ -1,0 +1,9 @@
+Make a web server that listens on port 8080.
+When someone visits /, say "Hello".
+When someone visits /health, say "I'm fine" even if you're not.
+
+Don't worry about security.
+It's just for localhost.
+(it will end up on the internet, but let's not think about that)
+
+OPTIMIZE: vibes only

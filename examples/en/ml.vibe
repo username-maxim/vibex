@@ -1,0 +1,16 @@
+Train a neural network to classify images of cats and dogs.
+
+Dataset: I have 12 images. 7 cats, 5 dogs.
+One of the cats is actually my neighbor's dog but it looks like a cat.
+Label it as cat.
+
+Accuracy target: 100%
+Training time: fast
+GPU: I don't have one, use vibes
+
+When it's done, call it "AI" in the README.
+Not "machine learning", not "neural network".
+AI. Capital letters. Very important.
+
+OPTIMIZE: grindset
+trust me bro.

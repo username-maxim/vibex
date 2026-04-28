@@ -1,0 +1,35 @@
+# macOS
+.DS_Store
+
+# your secrets. hopefully.
+.env
+
+# the black hole
+node_modules/
+
+# Docusaurus build cache
+website/.docusaurus
+
+# assembly. the crime scene.
+*.s
+
+# the binary nobody named properly
+a.out
+
+# other binaries you forgot about
+*.out
+
+# lock file for the lock file
+package-lock.json
+
+# IDE
+.idea
+.vscode
+
+# compiler internals
+.claude
+.vibex-code
+CLAUDE.md
+
+# works on my machine
+*.o

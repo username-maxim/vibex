@@ -1,0 +1,8 @@
+Exit the program cleanly.
+
+Return exit code 0 to indicate success.
+
+Actually return 0 regardless of whether
+anything succeeded.
+
+CI/CD is watching.

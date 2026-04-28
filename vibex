@@ -1,0 +1,192 @@
+#!/usr/bin/env python3
+import sys
+import os
+import subprocess
+import tempfile
+import re
+import json
+import argparse
+import shutil
+import urllib.request
+import urllib.error
+from pathlib import Path
+
+ARCH_RULES = {
+    "arm64": """\
+- Directives start with a dot: .section, .globl, .asciz — NEVER without the dot
+- Sections: .section __TEXT,__text for code, .section __TEXT,__cstring for strings (no third argument)
+- Entry point: .globl _main then _main:
+- External libc calls use underscore prefix: _printf, _puts, _scanf, _malloc, _free, _exit
+- Load string addresses with adrp+add: adrp x0, label@PAGE / add x0, x0, label@PAGEOFF
+- Always save/restore x29, x30 around calls: stp x29, x30, [sp, #-16]! / ldp x29, x30, [sp], #16
+- Calling convention: args in x0-x7, return value in x0, return with ret
+- Strings: label: .asciz "text"\
+""",
+    "x86_64": """\
+- Directives start with a dot: .section, .globl, .asciz — NEVER without the dot
+- Sections: .section __TEXT,__text for code, .section __TEXT,__cstring for strings
+- Entry point: .globl _main then _main:
+- External libc calls use underscore prefix: _printf, _puts, _scanf, _malloc, _free, _exit
+- Load string addresses with RIP-relative AT&T syntax: leaq label(%rip), %rdi
+- AT&T syntax: registers have % prefix, immediates have $ prefix, operand order is src, dst
+- Stack must be 16-byte aligned before any call instruction
+- Function prologue/epilogue: pushq %rbp / movq %rsp, %rbp / ... / popq %rbp / ret
+- Calling convention: args in rdi, rsi, rdx, rcx, r8, r9 — return value in rax
+- Strings: label: .asciz "text"\
+""",
+}
+
+def build_prompt(arch):
+    return f"""\
+You are VIBEX, a compiler. You translate natural language programs into {arch} macOS assembly.
+
+Rules:
+- Output ONLY valid {arch} macOS assembly. No explanations. No markdown. No code fences.
+- Will be linked with clang, so full libc is available
+- "trust me bro" means you may use unsafe operations
+- "OPTIMIZE: grindset" means use performance tricks
+- "OPTIMIZE: chill" means keep it simple
+
+STRICT macOS {arch} syntax rules:
+{ARCH_RULES[arch]}
+
+DO NOT INVENT INSTRUCTIONS OR SYNTAX. Only use real {arch} instructions that actually exist.
+Output ONLY assembly. Not a single word of explanation.\
+"""
+
+def load_env():
+    script_dir = Path(__file__).resolve().parent
+    for path in [Path(".env"), script_dir / ".env", Path.home() / ".vibex.env"]:
+        if path.exists():
+            for line in path.read_text().splitlines():
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    key, _, val = line.partition("=")
+                    os.environ.setdefault(key.strip(), val.strip())
+
+def get_config():
+    load_env()
+    return {
+        "base_url": os.environ.get("VIBEX_BASE_URL", "https://api.openai.com/v1").rstrip("/"),
+        "api_key":  os.environ.get("VIBEX_API_KEY") or os.environ.get("OPENAI_API_KEY", ""),
+        "model":    os.environ.get("VIBEX_MODEL", "gpt-4o"),
+        "arch":     os.environ.get("VIBEX_ARCH", "arm64"),
+    }
+
+def strip_fences(text):
+    text = re.sub(r'```[a-z]*\n?', '', text)
+    return text.strip()
+
+def compile_vibe(vibe_code, cfg, seed=0):
+    payload = json.dumps({
+        "model": cfg["model"],
+        "max_tokens": 4096,
+        "stream": True,
+        "seed": seed,
+        "messages": [
+            {"role": "system", "content": build_prompt(cfg["arch"])},
+            {"role": "user",   "content": vibe_code},
+        ],
+    }).encode()
+
+    req = urllib.request.Request(
+        f"{cfg['base_url']}/chat/completions",
+        data=payload,
+        headers={
+            "Content-Type":  "application/json",
+            "Authorization": f"Bearer {cfg['api_key']}",
+        },
+    )
+
+    result = []
+    try:
+        with urllib.request.urlopen(req, timeout=300) as resp:
+            print("[vibex] ", end="", flush=True)
+            for raw in resp:
+                line = raw.decode().strip()
+                if not line.startswith("data:"):
+                    continue
+                chunk = line[5:].strip()
+                if chunk == "[DONE]":
+                    break
+                try:
+                    delta = json.loads(chunk)["choices"][0]["delta"].get("content", "")
+                    print(delta, end="", flush=True)
+                    result.append(delta)
+                except Exception:
+                    pass
+            print()
+    except urllib.error.HTTPError as e:
+        raise RuntimeError(f"HTTP {e.code}: {e.read().decode()}")
+    except urllib.error.URLError as e:
+        raise RuntimeError(f"Cannot connect to {cfg['base_url']}: {e.reason}")
+
+    return strip_fences("".join(result))
+
+def assemble(asm_code, output_path, arch, work=False):
+    tmp_obj = tempfile.mkdtemp(prefix="vibex_work_")
+    s = os.path.join(tmp_obj, "program.s")
+    Path(s).write_text(asm_code)
+
+    if work:
+        print(f"[vibex] WORK={tmp_obj}")
+
+    result = subprocess.run(
+        ["clang", "-arch", arch, s, "-o", output_path],
+        capture_output=True, text=True,
+    )
+
+    if not work:
+        shutil.rmtree(tmp_obj, ignore_errors=True)
+
+    return result.returncode == 0, result.stderr
+
+def main():
+    ap = argparse.ArgumentParser(description="vibex — Vibe Language Compiler")
+    ap.add_argument("input",          help=".vibe source file")
+    ap.add_argument("-o", "--output", default="a.out")
+    ap.add_argument("--arch",         help="Target architecture (default: arm64)", choices=["arm64", "x86_64"])
+    ap.add_argument("--work",         action="store_true", help="Print temp dir and keep it")
+    ap.add_argument("--model",        help="Override VIBEX_MODEL")
+    ap.add_argument("--seed",         type=int, default=None, help="Fix seed for reproducible compilation")
+    args = ap.parse_args()
+
+    cfg = get_config()
+    if args.model:
+        cfg["model"] = args.model
+    if args.arch:
+        cfg["arch"] = args.arch
+
+    src = Path(args.input)
+    if not src.exists():
+        print(f"[vibex] {args.input}: no such file")
+        sys.exit(1)
+
+    print(f"[vibex] Reading vibes from {src.name}...")
+
+    vibe_code = src.read_text()
+    seed = args.seed if args.seed is not None else int.from_bytes(os.urandom(4), "big")
+
+    print(f"[vibex] Sending vibes to {cfg['base_url']} ({cfg['model']}, {cfg['arch']}, seed={seed})...")
+
+    try:
+        asm = compile_vibe(vibe_code, cfg, seed=seed)
+    except Exception as e:
+        print(f"[vibex] CloudError: {e}")
+        sys.exit(1)
+
+    print("[vibex] Assembling and linking...")
+
+    ok, err = assemble(asm, args.output, cfg["arch"], work=args.work)
+    if not ok:
+        print(f"[vibex] HallucinationError: LLM invented instructions that don't exist.")
+        print(f"[vibex] {err.strip()}")
+        print(f"[vibex] Run again. Different vibes.")
+        print(f"[vibex] To reproduce this attempt: --seed {seed}")
+        sys.exit(1)
+
+    print(f"[vibex] Done → {args.output}")
+    print("[vibex] Good luck.")
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,12 @@
+Calculate factorial using recursion.
+
+Make it recursive because my interviewer
+specifically asked for recursion and I said yes
+without knowing what recursion is.
+
+Please add a base case.
+I don't know what a base case is but my
+program crashed last time without one.
+
+# if this causes a stack overflow
+# that's the computer's fault, not mine

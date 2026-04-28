@@ -1,0 +1,12 @@
+Allocate some memory.
+Use it for something.
+Free it.
+
+Actually wait, free it before using it.
+No wait that's wrong.
+
+You know what, just don't free it.
+The OS will handle it when the program exits.
+I read that somewhere.
+
+# TODO: fix this before code review

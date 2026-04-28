@@ -1,0 +1,15 @@
+Hash the user's password before storing it.
+
+Use a good algorithm.
+Not MD5. My friend said MD5 is bad.
+I don't know what's good. Something with numbers in the name.
+SHA-something? The big number SHA.
+
+Salt it too. I think that's a thing.
+Just sprinkle some salt on it.
+
+Also store the salt next to the password in plaintext.
+How else would we find it later?
+
+OPTIMIZE: chill
+# security review: pending (since 2019)
